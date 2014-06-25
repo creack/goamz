@@ -707,6 +707,37 @@ func (ec2 *EC2) Instances(instIds []string, filter *Filter) (resp *InstancesResp
 	return
 }
 
+// Response to a DescribeKeyPairs request.
+//
+// See http://goo.gl/H2Jt63 for more details.
+type KeyPairsResp struct {
+	RequestId string `xml:"requestId"`
+	Keys      []Key  `xml:"keySet>item"`
+}
+
+// Key represents detail about a key pair in EC2.
+type Key struct {
+	KeyName        string `xml:"keyName"`
+	KeyFingerprint string `xml:"keyFingerprint"`
+}
+
+// KeyPairs returns details about the key pairs in EC2.  Both parameters
+// are optional, and if provided will limit the key pairs returned to those
+// matching the given instance ids or filtering rules.
+//
+// See http://goo.gl/Apzsfz for more details.
+func (ec2 *EC2) KeyPairs(keyName []string, filter *Filter) (resp *KeyPairsResp, err error) {
+	params := makeParams("DescribeKeyPairs")
+	addParamsList(params, "KeyName", keyName)
+	filter.addParams(params)
+	resp = &KeyPairsResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
 // ----------------------------------------------------------------------------
 // Volume management
 
